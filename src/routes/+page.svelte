@@ -1,2 +1,2 @@
 <h1>under contruction...</h1>
-<h2>see old site?</h2>
+<a href="https://old.lycopod.net">see old site?</a>
