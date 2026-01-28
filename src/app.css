@@ -1,0 +1,37 @@
+:root {
+    --bg-color: #000000;
+    --text-color: #ffffff;
+}
+
+body {
+    background-color: var(--bg-color);
+    /* font-family: Pretendard, apple-system, system-ui, "Helvetica", "Arial", sans-serif; */
+    font-family: 'Poppins', sans-serif;
+    color: var(--text-color);
+    font-weight: 300;
+}
+
+h1 {
+    font-weight: 600;
+}
+
+h2 {
+    font-weight: 500;
+}
+
+h3 {
+    font-weight: 400;
+}
+
+h4 {
+    font-weight: 300;
+}
+
+h5 {
+    font-weight: 200;
+}
+
+h6 {
+    font-weight: 100;
+}
+
