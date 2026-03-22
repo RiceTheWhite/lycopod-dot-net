@@ -3,6 +3,17 @@
     import { Raycaster } from "$lib/raycaster/raycaster.svelte"
 	import { remap } from "$lib/raycaster/math"
 
+    let width = $state(640)
+    let height = $state(480)
+    let renderingMode = $state('pixelated')
+
+    let skyPath = $state('/raycaster/sky2.gif')
+    const skyOptions = [
+        { name: '1', path: '/raycaster/sky1.gif' },
+        { name: '2', path: '/raycaster/sky2.gif' },
+        { name: '3', path: '/raycaster/sky3.gif' }
+    ];
+
     let canvas: HTMLCanvasElement
     let ctx: CanvasRenderingContext2D
     let engine: Raycaster
@@ -18,12 +29,22 @@
         [1,1,1,1,1,1]
     ]
 
+    async function loadImage(src: string): Promise<HTMLImageElement> {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.src = src;
+            img.onload = () => resolve(img);
+            img.onerror = reject;
+        });
+    }
+
     async function init() {
-        wallTexture = new Image();
-        wallTexture.src = "/raycaster/wall.jpg"
-        await wallTexture.onload
+        [wallTexture] = await Promise.all([
+            loadImage("/raycaster/wall.jpg"),
+        ])
 
         ctx = canvas.getContext('2d')!
+
         engine = new Raycaster(map)
         loop(0)
     }
@@ -41,8 +62,9 @@
 
     function render() {
         // clear the screen!
-        ctx.fillStyle = 'black'
-        ctx.fillRect(0, 0, canvas.width, canvas.height)
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+        // ctx.fillStyle = 'black'
+        // ctx.fillRect(0, 0, canvas.width, canvas.height)
 
         const midX = canvas.width / 2
         const midY = canvas.height / 2
@@ -97,8 +119,61 @@
 </script>
 
 
-<canvas bind:this={canvas} width="640" height="480"></canvas>
+<div>
+    <div class="sky-layer" style:background-image="url({skyPath})"></div>
+    <canvas 
+    bind:this={canvas} 
+    width={width} 
+    height={height} 
+    style:image-rendering={renderingMode}
+    ></canvas>
+
+    <div class="debug">
+        <label for="h">heightres</label>
+        <input id="h" type="number" bind:value={height} step="10" />
+
+        <label for="w">widthres</label>
+        <input id="w" type="number" bind:value={width} step="10" />
+
+        <label for="renderingmode">rendering mode</label>
+        <select bind:value={renderingMode}>
+            <option value="pixelated">pixelated</option>
+            <option value="auto">auto</option>
+            <option value="mercrisp-edgescedes">crisp edges</option>
+            <option value="smooth">smooth</option>
+            <option value="high-quality">highqual</option>
+        </select>
+
+        <label for="sky-select">Sky Texture</label>
+        <select id="sky-select" bind:value={skyPath}>
+            {#each skyOptions as option}
+                <option value={option.path}>{option.name}</option>
+            {/each}
+        </select>
+    </div>
+</div>
+
+
 
 <style>
-    canvas { background: #000; display: block; margin: 0 auto; }
+    .sky-layer {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 50%;
+        background-repeat: repeat;
+        background-size: auto;
+        z-index: -2;
+        image-rendering: pixelated;
+    }
+
+    canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: -1;
+    }
 </style>
