@@ -7,6 +7,8 @@
     let ctx: CanvasRenderingContext2D
     let engine: Raycaster
 
+    let wallTexture: HTMLImageElement
+
     const map = [
         [1,1,1,1,1,1],
         [1,0,0,0,0,1],
@@ -16,7 +18,11 @@
         [1,1,1,1,1,1]
     ]
 
-    function init() {
+    async function init() {
+        wallTexture = new Image();
+        wallTexture.src = "/raycaster/wall.jpg"
+        await wallTexture.onload
+
         ctx = canvas.getContext('2d')!
         engine = new Raycaster(map)
         loop(0)
@@ -44,19 +50,46 @@
         // actual rendering
         for (let x = 0; x < canvas.width; x++) {
             const cameraX = remap(x, 0, canvas.width, -1, 1)
-            const rd = {
-                x: Math.cos(engine.player.dir) + engine.player.planeX * cameraX,
-                y: Math.sin(engine.player.dir) + engine.player.planeY * cameraX
-            };
 
-            const result = engine.castRay({ x: engine.player.x, y: engine.player.y }, rd)
+            const result = engine.castRay(cameraX)
             const lineHeight = canvas.height / result.distance;
 
-            ctx.strokeStyle = '#0f0'
-            ctx.beginPath()
-            ctx.moveTo(x, midY - (lineHeight / 2))
-            ctx.lineTo(x, midY + (lineHeight / 2))
-            ctx.stroke()
+            // ctx.strokeStyle = '#0f0'
+            // ctx.beginPath()
+            // ctx.moveTo(x, midY - (lineHeight / 2))
+            // ctx.lineTo(x, midY + (lineHeight / 2))
+            // ctx.stroke()
+
+            drawTexturedColumn(x, cameraX, lineHeight, result, wallTexture)
+        }
+    }
+
+    function drawTexturedColumn(x: number, cameraX: number, lineHeight: number, result: any, textureImg: HTMLImageElement) {
+        const rd = {
+            x: Math.cos(engine.player.dir) + engine.player.planeX * cameraX,
+            y: Math.sin(engine.player.dir) + engine.player.planeY * cameraX
+        }
+
+        const texWidth = textureImg.width
+        const texHeight = textureImg.height
+
+        let texX = Math.floor(result.wallX * texWidth);
+        
+        if ((result.side === 0 && rd.x > 0) || (result.side === 1 && rd.y < 0)) {
+            texX = texWidth - texX - 1;
+        }
+
+        // 1px slice
+        ctx.drawImage(
+            textureImg,
+            texX, 0, 1, texHeight,
+            x, (canvas.height / 2) - (lineHeight / 2), 1, lineHeight
+        );
+
+        // shadow for other side
+        if (result.side === 1) {
+            ctx.fillStyle = 'rgba(0,0,0,0.3)';
+            ctx.fillRect(x, (canvas.height / 2) - (lineHeight / 2), 1, lineHeight);
         }
     }
 

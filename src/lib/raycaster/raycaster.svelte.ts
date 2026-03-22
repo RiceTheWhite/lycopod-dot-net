@@ -21,7 +21,14 @@ export class Raycaster {
         this.input = new InputManager()
     }
 
-    castRay(ro: Vector2, rd: Vector2) {
+    
+
+    castRay(cameraX: number) {
+        const ro = { x: this.player.x, y: this.player.y }
+        const rd = {
+            x: Math.cos(this.player.dir) + this.player.planeX * cameraX,
+            y: Math.sin(this.player.dir) + this.player.planeY * cameraX
+        };
         // sqrt(1 + (dy/dx)^2)
         const rayUnitStepSize: Vector2 = {
             x: Math.abs(1 / (rd.x || 1e-30)),
@@ -90,7 +97,15 @@ export class Raycaster {
             }
         }
 
-        return { distance, side, mapCheck }
+        let wallX: number;
+        if (side === 0) {
+            wallX = ro.y + distance * rd.y;
+        } else {
+            wallX = ro.x + distance * rd.x;
+        }
+        wallX -= Math.floor(wallX)
+
+        return { distance, side, wallX };
     }
 
     update(dt: number) {
@@ -114,7 +129,7 @@ export class Raycaster {
         const newX = this.player.x + dx
         const newY = this.player.y + dy
 
-        const bufferLength = 0.4
+        const bufferLength = 0.1
 
         const bufferX = dx > 0 ? bufferLength : -bufferLength
         const bufferY = dy > 0 ? bufferLength : -bufferLength
